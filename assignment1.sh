@@ -4,9 +4,10 @@
 # Variables
 mysqlDBUser="root"
 mysqlDBName="wordpressDB"
-mysqlDBPassword="fW23eaFAS"
+mysqlDBPassword=`echo $(echo $RANDOM | md5sum | cut -c1-6 | tr [:lower:] [:upper:])$(echo $RANDOM | md5sum | cut -c1-6 )`
 domainName=""
-
+echo -e "mysqlDBUser=root\nmysqlDBName=wordpressDB\nmysqlDBPassword=$mysqlDBPassword" > ~/.mysqlcred.inf
+chmod 500 ~/.mysqlcred.inf
 
 packages=( nginx mysql-server php-fpm php-mysql )
 for package in "${packages[@]}"
@@ -21,6 +22,7 @@ do
 			sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password ${mysqlDBPassword}"
 			sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password ${mysqlDBPassword}"
 			sudo apt-get -y install mysql-server
+			echo "Credentials are stored in ${HOME}/.mysqlcred.inf. Remove file once you read it"
 			continue
 		fi
 		echo "${package} is not installed.\nInstallling $package"
@@ -31,7 +33,7 @@ do
 		then
 			echo "Enter mysql root password:"
 			read mysqlDBPassword
-		fi				
+		fi
 	fi
 done
 
@@ -100,7 +102,7 @@ sed -i "s/password_here/${mysqlDBPassword}/g" /var/www/${domainName}/html/wp-con
 sed -i "s/localhost/${domainName}/g" /var/www/${domainName}/html/wp-config.php
 
 # Cleanup directories
-#rm latest.tar.gz
+rm -rf latest.tar.gz* wordpress/
 
 echo "All done"
 
