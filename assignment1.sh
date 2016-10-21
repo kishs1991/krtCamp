@@ -1,14 +1,19 @@
 #!/bin/bash
-# Check if packages nginx, mysql-server and php are installed
+# This script will install nginx, mysql-server , php and wordpress.
+# More it will ask for new domain and make related configuration.
 
-# Variables
+
+# declare the variables Variables
 mysqlDBUser="root"
 mysqlDBName="wordpressDB"
 mysqlDBPassword=`echo $(echo $RANDOM | md5sum | cut -c1-6 | tr [:lower:] [:upper:])$(echo $RANDOM | md5sum | cut -c1-6 )`
 domainName=""
+
+# save mysql credentials to a file and secure the file
 echo -e "mysqlDBUser=root\nmysqlDBName=wordpressDB\nmysqlDBPassword=$mysqlDBPassword" > ~/.mysqlcred.inf
 chmod 500 ~/.mysqlcred.inf
 
+# Check if packages nginx, mysql-server and php are installed
 packages=( nginx mysql-server php-fpm php-mysql )
 for package in "${packages[@]}"
 do
