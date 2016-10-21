@@ -4,7 +4,7 @@
 # More it will ask for new domain and make related configuration.
 # Author - kishor shelke kishs1991@gmail.com
 #
-# this branch will use wpcli for installation
+# this branch will use wpcli for installation.
 #
 #
 ####################################################################
