@@ -1,7 +1,21 @@
 #!/bin/bash
-# This script will install nginx, mysql-server , php and wordpress.
+####################################################################
+# This script is made for Ubuntu distribution and will install nginx, mysql-server , php and wordpress.
 # More it will ask for new domain and make related configuration.
+# Author - kishor shelke kishs1991@gmail.com
+#
+#
+#
+#
+####################################################################
 
+# check if system is Ubuntu
+osDistribution=`lsb_release -si`
+if [ ${osDistribution} != "Ubuntu" ]
+then
+	echo -e "The system is not Ubuntu.\nExiting the script ...."
+	exit 1
+fi
 
 # declare the variables Variables
 mysqlDBUser="root"
@@ -22,12 +36,13 @@ do
 	dpkg -l ${package}
 	if [ $? -ne 0 ]
 	then
+		# check if the package is mysql and pass the password to installer
 		if [ "${package}" = "mysql-server" ]
 		then
 			sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password ${mysqlDBPassword}"
 			sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password ${mysqlDBPassword}"
 			sudo apt-get -y install mysql-server
-			echo "Credentials are stored in ${HOME}/.mysqlcred.inf. Remove file once you read it"
+			echo "Credentials are stored in ${HOME}/.mysqlcred.inf. Secure the file and prefer removing once you remember it"
 			continue
 		fi
 		echo "${package} is not installed.\nInstallling $package"
