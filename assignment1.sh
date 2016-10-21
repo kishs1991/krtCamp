@@ -4,7 +4,7 @@
 # More it will ask for new domain and make related configuration.
 # Author - kishor shelke kishs1991@gmail.com
 #
-# this branch will use wpcli for installation.
+# this branch will use wpcli to install wordpress
 #
 #
 ####################################################################
@@ -57,6 +57,19 @@ do
 	fi
 done
 
+# install wp cli
+
+curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+chmod +x wp-cli.phar
+sudo mv wp-cli.phar /usr/local/bin/wp
+if [ $? -ne 0 ]
+then
+	echo "Failed to install wp-cli"
+	exit 1
+else
+	echo -e "wp-cli installed successfully.\nAvailable at path /usr/local/bin/wp"
+fi
+
 # Ask user for domain name to point
 echo "Enter domain name:"
 read domainName
@@ -69,15 +82,7 @@ echo "127.0.0.1	${domainName}" >> /etc/hosts
 
 
 # Create nginx config file for example.com
-mkdir -p /var/www/$domainName/html
-#cp /etc/nginx/sites-available/default /etc/nginx/sites-available/$domainName
-#sed -i "s/root \/var\/www\/html/root \/var\/www\/$domainName\/html/g" /etc/nginx/sites-available/$domainName
-#sed -i "s/server_name localhost/server_name $domainName $domainName1/g" /etc/nginx/sites-available/$domainName
-#sed -i "s/index index.html/index index.php index.html/g" /etc/nginx/sites-available/$domainName
-#sed -i "s/        #location ~ \.php$ {/        location ~ \.php$ {/g" /etc/nginx/sites-available/$domainName
-#sed -i "s/                #include snippets/fastcgi-php.conf/                include snippets/fastcgi-php.conf/g" /etc/nginx/sites-available/$domainName
-#sed -i "s/index index.html/index index.php index.html/g" /etc/nginx/sites-available/$domainName
-#sed -i "s/index index.html/index index.php index.html/g" /etc/nginx/sites-available/$domainName
+mkdir -p /var/www/${domainName}/html
 
 echo "server {
         listen 80 default_server;
@@ -100,29 +105,17 @@ echo "server {
 ln -s /etc/nginx/sites-available/${domainName} /etc/nginx/sites-enabled/
 rm /etc/nginx/sites-enabled/default
 
-# Download WordPress latest version
-wget https://wordpress.org/latest.tar.gz
-tar -xzvf latest.tar.gz
-cp -r ./wordpress/* /var/www/${domainName}/html/
-
-# Change permission
-sudo chown -R ${USER}:${USER} /var/www/${domainName}/html
-chmod -R 755 /var/www
-#
-
 # Create databse for wordpress
 mysql -h localhost -u ${mysqlDBUser} -p${mysqlDBPassword} -e "CREATE DATABASE ${mysqlDBName};"
 
-# Create wp-config.php
-cp /var/www/${domainName}/html/wp-config-sample.php /var/www/${domainName}/html/wp-config.php
+# use wpcli to install wordpress
 
-sed -i "s/database_name_here/${mysqlDBName}/g" /var/www/${domainName}/html/wp-config.php
-sed -i "s/username_here/${mysqlDBUser}/g" /var/www/${domainName}/html/wp-config.php
-sed -i "s/password_here/${mysqlDBPassword}/g" /var/www/${domainName}/html/wp-config.php
-sed -i "s/localhost/${domainName}/g" /var/www/${domainName}/html/wp-config.php
-
-# Cleanup directories
-rm -rf latest.tar.gz* wordpress/
+chown -R www-data /var/www/${domainName}/html
+cd /var/www/${domainName}/html
+wp core download
+wp core config --dbname=${mysqlDBName} --dbuser=${mysqlDBUser} --dbpass=${mysqlDBPassword} --dbhost=${domainName} --dbprefix=wp_
+wp core install --url="http://${domainName}" --title="${domainName}" --admin_user="root" --admin_password="root@123" --admin_email="email@${domainName}"
+chmod -R g+w /var/www/${domainName}/html
 
 echo "All done"
 
